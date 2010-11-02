@@ -18,3 +18,8 @@ dep 'ntp.iptables_port' do
   port_name 'ntp'
   proto 'udp'
 end
+
+dep 'snmp.iptables_port' do
+  port_name 'snmp'
+  proto 'udp'
+end
