@@ -1,8 +1,8 @@
-dep 'babushka' do
+dep 'babushka-xenserver' do
   requires 'set up.babushka'
   setup {
     set :babushka_branch, 'master'
-    set :install_path, Babushka::Path.path if Babushka::Path.run_from_path?
+    set :install_path, '/usr/local/babushka'
   }
 end
 
@@ -24,7 +24,6 @@ end
 
 dep 'set up.babushka' do
   requires 'up to date.babushka', 'in path.babushka'
-  define_var :install_path, :default => '/usr/local/babushka', :message => "Where would you like babushka installed"
   define_var :babushka_branch,
     :message => "Which branch would you like to update from?",
     :default => 'master',
@@ -95,7 +94,7 @@ end
 dep 'installed.babushka' do
   requires 'ruby', 'git'
   requires_when_unmet 'writable.install_path'
-  setup { set :babushka_source, "git://github.com/benhoskings/babushka.git" }
+  setup { set :babushka_source, "http://github.com/benhoskings/babushka.git" }
   met? { repo.exists? }
   meet { repo.clone! var(:babushka_source) }
 end
