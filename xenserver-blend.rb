@@ -7,7 +7,7 @@ meta :iptables_port do
       iptables_rules =~ /^ACCEPT.*#{proto} dpt:#{port_name}/
     }
     meet {
-      shell "iptables -A RH-Firewall-1-INPUT -m state --state NEW " \
+      shell "iptables -I RH-Firewall-1-INPUT 10 -m state --state NEW " \
             "-m #{proto} -p #{proto} --dport #{port_name} -j ACCEPT"
       shell '/sbin/service iptables save'
     }
