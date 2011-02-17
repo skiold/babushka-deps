@@ -1,8 +1,8 @@
-dep 'babushka-xenserver' do
+dep 'babushka' do
   requires 'set up.babushka'
   setup {
     set :babushka_branch, 'master'
-    set :install_path, '/usr/local/babushka'
+    set :install_path, Babushka::Path.path if Babushka::Path.run_from_path?
   }
 end
 
@@ -15,15 +15,14 @@ dep 'babushka next' do
 end
 
 meta :babushka do
-  template {
-    helper :repo do
-      Babushka::GitRepo.new var(:install_path)
-    end
-  }
+  def repo
+    Babushka::GitRepo.new var(:install_path)
+  end
 end
 
 dep 'set up.babushka' do
   requires 'up to date.babushka', 'in path.babushka'
+  define_var :install_path, :default => '/usr/local/babushka', :message => "Where would you like babushka installed"
   define_var :babushka_branch,
     :message => "Which branch would you like to update from?",
     :default => 'master',
@@ -40,23 +39,26 @@ dep 'up to date.babushka' do
       if result
         log_ok "babushka is up to date at revision #{repo.current_head}."
       else
-        log "babushka can be updated: #{repo.current_head}..#{shell("git rev-parse --short origin/#{var(:babushka_branch)}")}"
+        log "babushka can be updated: #{repo.current_head}..#{repo.repo_shell("git rev-parse --short origin/#{var(:babushka_branch)}")}"
       end
     end
   }
-  meet { repo.reset_hard! "origin/#{var(:babushka_branch)}" }
+  meet {
+    log "#{repo.repo_shell("git diff --stat #{repo.current_head}..origin/#{var(:babushka_branch)}")}"
+    repo.reset_hard! "origin/#{var(:babushka_branch)}"
+  }
 end
 
 dep 'update would fast forward.babushka' do
   requires 'on correct branch.babushka'
   met? {
-    if !shell('git fetch origin', :dir => var(:install_path))
+    if !repo.repo_shell('git fetch origin')
       fail_because("Couldn't pull the latest code - check your internet connection.")
     else
       if !repo.remote_branch_exists?
-        fail_because("The current branch, #{current_branch}, isn't pushed to origin/#{current_branch}.")
+        fail_because("The current branch, #{repo.current_branch}, isn't pushed to origin/#{repo.current_branch}.")
       elsif repo.ahead?
-        fail_because("There are unpushed commits in #{current_branch}.")
+        fail_because("There are unpushed commits in #{repo.current_branch}.")
       else
         true
       end
